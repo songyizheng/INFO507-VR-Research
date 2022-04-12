@@ -1,0 +1,5 @@
+﻿Name,Gender,Age_Group,Exp_ID,Exp_Group,Edu_Content,Exam_Accuracy,VR_Exp,Dizziness,Headache,Nausea
+Jiahui Wang,female,master,1,VR,Valley of the Temples,0.8,no,yes,no,no
+Linpeng Sun,male,master,1,Text,Valley of the Temples,0.6,no,no,no,no
+Qiuchen Zhang,female,PhD,1,VR,Valley of the Temples,1,no,yes,no,yes
+Runnan Zhou,male,undergraduate,1,VR,Valley of the Temples,0.8,yes,no,no,no

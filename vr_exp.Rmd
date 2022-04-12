@@ -1,0 +1,206 @@
+---
+title: "VR Expriment #1 Report"
+author: "Songyi Zheng"
+date: "4/3/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+library(effects)
+library(tidyverse)
+library(ggthemes)
+library(ggplot2)
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+# Data
+
+The dataset "VR_Data.csv" which be used in this project was contructed by myself 
+though doing the VR-based education expriment.
+
+## Read and inspect data
+```{r}
+# read the file in
+data <- read_csv("data/VR_Data.csv")
+
+# inspect the data
+glimpse(data)
+```
+
+# Research Question #1
+> Are there any significant differences in effectiveness in the application of VR-based educational tools between students of different age groups?  
+
+
+```{r}
+# Get VR expriment group data
+vr_data <- data %>%
+  filter(Exp_Group == "VR")
+
+# Get text expriment group data
+text_data <- data %>%
+  filter(Exp_Group == "Text")
+
+```
+
+
+## Linear Regression Model
+Let's run a simple linear regression, so we can determine whether age groups are
+different in terms of the exam accuracy they are given.
+
+```{r}
+# create the linear regression model
+model_vr_data <- lm(Exam_Accuracy ~ Age_Group,
+                    data = vr_data)
+
+# print the result
+summary(model_vr_data)
+```
+
+We will use the `effects` library to look at these means and confidence intervals based on our linear regression model.
+```{r}
+library(effects)
+
+effect("Age_Group", model_vr_data) %>%
+  data.frame()
+```
+Let's plot these numbers so we can compare groups more easily.
+```{r}
+effect("Age_Group", model_vr_data) %>%
+  data.frame() %>%
+  ggplot(aes(x = reorder(Age_Group, fit),
+             y = fit,
+             ymin = lower,
+             ymax = upper,
+             label = round(fit, digits = 2))) +
+  geom_errorbar(width = .5) +
+  geom_label() +
+  theme_linedraw() +
+  labs(title = "Exam Accurary predicted by Age Groups",
+       subtitle = "Linear regression results -- Exam_Accuracy ~ Age_Group",
+       x = "Age Group",
+       y = "Exam Accuracy")
+```
+
+## Data Visualization - Bar Plot
+> What is the distribution of exam accuracy across the different age groups?
+
+```{r}
+# create a new data frame named "vr_score_data" with the summarization
+# of the data
+vr_score_data <- vr_data %>%
+  group_by(Age_Group) %>%
+  summarize(mean_accuracy = mean(`Exam_Accuracy`, na.rm = TRUE))
+vr_score_data$Exp_Group = "VR"
+
+# create a new data frame named "text_score_data" with the summarization
+# of the data
+text_score_data <- text_data %>%
+  group_by(Age_Group) %>%
+  summarize(mean_accuracy = mean(`Exam_Accuracy`, na.rm = TRUE))
+text_score_data$Exp_Group = "Text"
+
+# combine dataframe "vr_score_data" and "text_score_data"
+score_data = rbind(vr_score_data, text_score_data)
+ 
+```
+
+Now, create a bar plot mapping the Age Group to x and the mean of accuracy to y.
+```{r}
+score_data %>%
+  ggplot(aes(x = reorder(Age_Group, mean_accuracy),
+             y = mean_accuracy,
+             fill = Exp_Group)) +
+  geom_bar(stat = "identity",
+           position = "dodge") +
+  geom_label(aes(label = round(mean_accuracy, digits = 2)),
+             position = position_dodge(width = 1)) +
+  #theme_linedraw() +
+  #scale_fill_colorblind() +
+  labs(y = "mean exam accuracy",
+       x = "Age Group") +
+  labs(title = "Mean exam accuracy across the different age group")
+```
+
+# Research Question #2
+> Will prolonged use of VR apps during education have an impact on students' health?
+
+## line plot
+
+First, create a new data frame "dizz_data" contains the expriment ID and number of student feel dizziness in VR expriment group
+```{r}
+# create a new data frame named "dizz_data" with the summarization
+# of the data
+dizz_data <- vr_data %>%
+  group_by(Exp_ID) %>%
+  summarize(num_dizz = sum(`Dizziness`== "yes", na.rm = TRUE))
+```
+
+Now,let's draw a line graph of how students experience dizziness using the VR device as the experiment progresses
+```{r}
+ggplot(dizz_data, aes(x = Exp_ID,
+                      y = num_dizz)) +
+  geom_line() +
+  geom_point(size = 4, shape = 21, fill = "white") +
+  labs(x = "Experiment ID",
+       y = "number of students feel dizziness") +
+  labs(title = "Students feel dizziness status when using VR")
+```
+
+
+Secondly, create a new data frame "headache_data" contains the expriment ID and number of student feel headache in VR expriment group
+```{r}
+# create a new data frame named "headache_data" with the summarization
+# of the data
+headache_data <- vr_data %>%
+  group_by(Exp_ID) %>%
+  summarize(num_headache = sum(`Headache`== "yes", na.rm = TRUE))
+```
+
+Now,let's draw a line graph of how students experience headache using the VR device as the experiment progresses
+```{r}
+ggplot(headache_data, aes(x = Exp_ID,
+                          y = num_headache)) +
+  geom_line() +
+  geom_point(size = 4, shape = 21, fill = "white") +
+  labs(x = "Experiment ID",
+       y = "number of students feel headache") +
+  labs(title = "Students feel headache status when using VR")
+```
+
+
+
+Then, create a new data frame "nausea_data" contains the expriment ID and number of student feel nausea in VR expriment group
+```{r}
+nausea_data <- vr_data %>%
+  group_by(Exp_ID) %>%
+  summarize(num_nausea = sum(`Nausea`== "yes", na.rm = TRUE))
+```
+
+Now,let's draw a line graph of how students experience nausea using the VR device as the experiment progresses
+```{r}
+ggplot(nausea_data, aes(x = Exp_ID,
+                        y = num_nausea)) +
+  geom_line() +
+  geom_point(size = 4, shape = 21, fill = "white") +
+  labs(x = "Experiment ID",
+       y = "number of students feel nausea") +
+  labs(title = "Students feel nausea status when using VR")
+```
+
+Finally, we use a line plot to show the summarize status
+```{r}
+unhealth_data <- vr_data %>%
+  group_by(Exp_ID) %>%
+  summarize(num_unhealth = sum(`Dizziness` == "yes"|`Headache`== "yes"|`Nausea`== "yes", na.rm = TRUE ))
+
+# draw summarize line plot
+ggplot(unhealth_data, aes(x = Exp_ID,
+                          y = num_unhealth)) +
+  geom_line() +
+  geom_point(size = 4, shape = 21, fill = "white") +
+  labs(x = "Experiment ID",
+       y = "number of students feel unhealth") +
+  labs(title = "Summarize: Students feel unhealth status when using VR")
+```
+
